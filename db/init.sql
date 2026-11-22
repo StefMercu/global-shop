@@ -1,0 +1,8 @@
+CREATE ROLE users_svc  LOGIN PASSWORD 'users_pw';
+CREATE ROLE orders_svc LOGIN PASSWORD 'orders_pw';
+
+CREATE DATABASE users_db  OWNER users_svc;
+CREATE DATABASE orders_db OWNER orders_svc;
+
+REVOKE CONNECT ON DATABASE users_db  FROM PUBLIC;
+REVOKE CONNECT ON DATABASE orders_db FROM PUBLIC;
