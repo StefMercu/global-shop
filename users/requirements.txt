@@ -1,3 +1,8 @@
 fastapi
 uvicorn
 psycopg[binary]
+opentelemetry-distro
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-psycopg
+pika

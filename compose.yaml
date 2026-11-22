@@ -12,14 +12,40 @@ services:
       timeout: 3s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: app
+      RABBITMQ_DEFAULT_PASS: app_pw
+    ports:
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  jaeger:
+    image: jaegertracing/jaeger:2.17.0
+    ports:
+      - "16686:16686"
+
   users:
     build: ./users
     environment:
       DATABASE_URL: postgresql://users_svc:users_pw@db:5432/users_db
+      RABBIT_URL: "amqp://app:app_pw@rabbitmq:5672/%2F"
+      OTEL_SERVICE_NAME: users
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
     ports:
       - "8001:8000"
     depends_on:
       db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   orders:
@@ -27,14 +53,19 @@ services:
     environment:
       DATABASE_URL: postgresql://orders_svc:orders_pw@db:5432/orders_db
       USERS_URL: http://users:8000
-      USERS_TIMEOUT: "1.0"
-      USERS_RETRIES: "3"
+      RABBIT_URL: "amqp://app:app_pw@rabbitmq:5672/%2F"
+      OTEL_SERVICE_NAME: orders
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
     ports:
       - "8002:8000"
     depends_on:
       db:
         condition: service_healthy
-
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   pgdata:
