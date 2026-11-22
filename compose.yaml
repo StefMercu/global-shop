@@ -26,11 +26,15 @@ services:
     build: ./orders
     environment:
       DATABASE_URL: postgresql://orders_svc:orders_pw@db:5432/orders_db
+      USERS_URL: http://users:8000
+      USERS_TIMEOUT: "1.0"
+      USERS_RETRIES: "3"
     ports:
       - "8002:8000"
     depends_on:
       db:
         condition: service_healthy
+
 
 volumes:
   pgdata:
